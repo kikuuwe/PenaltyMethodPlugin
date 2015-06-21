@@ -1,4 +1,4 @@
-#  SiconosPlugin - a plugin for Choreonoid to provide access to Siconos-Numerics.
+#  PenaltyMethodPlugin - a plugin for Choreonoid to use penalty-based method.
 #  
 #  Author: Shin'ichiro Nakaoka
 #  Author: Ryo Kikuuwe
@@ -9,46 +9,33 @@
 #                          Science and Technology (AIST)
 #  Copyright (c) 2014-2015 Kyushu University
 #  
-#  SiconosPlugin is a free software; you can redistribute it and/or modify
+#  PenaltyMethodPlugin is a plugin for Choreonoid to use penalty-based method.
+#  
+#  PenaltyMethodPlugin is a free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  SiconosPlugin is distributed in the hope that it will be useful,
+#  PenaltyMethodPlugin is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #  
 #  You should have received a copy of the GNU General Public License
-#  along with SiconosPlugin; if not, write to the Free Software
+#  along with PenaltyMethodPlugin; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #  
 #  Contact: Ryo Kikuuwe, kikuuwe@ieee.org
-# 
-
-
+#
 
 ----------------------------------------------
-  README File for SiconosPlugin
+  README File for PenaltyMethodPlugin
 ----------------------------------------------
 
 Instructions
 
-[1] About SiconosPlugin
+[1] About PenaltyMethodPlugin
 
-The "SiconosPlugin for Choreonoid" (in short, SiconosPlugin) is a plugin for
-Choreonoid to provide access to some functions of SICONOS. The detailed 
-information on Choreonoid and SICONOS can be found in the following pages: 
- - http://www.choreonoid.org/
- - http://siconos.gforge.inria.fr/
-SICONOS is composed of some components, which are:
- - Siconos/Numerics
- - Siconos/Numerics
- - Siconos/Numerics, etc.
-SiconosPlugin uses only Siconos/Numerics. The detail of this component
-can be found at:
- - http://siconos.gforge.inria.fr/Numerics/index.html
-
-Now, SiconosPlugin has been known to work on:
+Now, PenaltyMethodPlugin has been known to work on:
  - x86_64 Ubuntu 14.04 LTS.
  - Choreonoid 1.5.0
  - SICONOS 3.7.1
@@ -57,33 +44,14 @@ us know.
 
 [2] Prerequisite
 
-The first thing to do is to download and install SICONOS.
-The instructions are provided at:
+None
 
- - http://siconos.gforge.inria.fr/
- - http://siconos.gforge.inria.fr/InstallGuide/index.html
-
-If you are working on Ubuntu, it may be enough to do the following:
-
-  1) Make sure that all prerequisites of SICONOS are in place as instructed in: 
-    http://siconos.gforge.inria.fr/InstallGuide/IG_prereq.html
-  2) get siconos-numerics-3.7.1-Linux.deb (or later) from
-    https://gforge.inria.fr/frs/?group_id=9&release_id=8870
-  3) and extract its content as follows:
-    - extract header files to:  /usr/local/include/Siconos/
-    - put the file libSiconosNumerics.so.3.7.1 to 
-        /usr/local/lib/x86_64-linux-gnu/
-    - create a symbolic link from
-        /usr/local/lib/libSiconosNumerics.so
-      to 
-        /usr/local/lib/x86_64-linux-gnu/libSiconosNumerics.so.3.7.1
-
-[3] Install of SiconosPlugin
+[3] Install of PenaltyMethodPlugin
  
 Simply put the files in this git directory to
-   ext/SiconosPlugin/
+   ext/PenaltyMethodPlugin/
 under the Choreonoid directory.
-Configure ÅgcmakeÅh appropriately and compile it.
+Configure "cmake" appropriately and compile it.
 
 ----------------------------------------------
 
