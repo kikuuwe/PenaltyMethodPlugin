@@ -427,6 +427,7 @@ PMCFSImpl::PMCFSImpl(WorldBase& world) :
     isConstraintForceOutputMode = false;
     is2Dmode = false;
     
+    bodyFor2dConstraint = 0;
     penaltyKpCoef = 1.;
     penaltyKvCoef = 1.;
 }
@@ -434,6 +435,7 @@ PMCFSImpl::PMCFSImpl(WorldBase& world) :
 
 PMCFSImpl::~PMCFSImpl()
 {
+    if(!bodyFor2dConstraint) delete bodyFor2dConstraint;
     if(CFS_DEBUG){
         os.close();
     }
@@ -627,9 +629,9 @@ inline void PMCFSImpl::clearExternalForces()
 {
     for(size_t i=0; i < bodiesData.size(); ++i){
         BodyData& bodyData = bodiesData[i];
-        if(bodyData.hasConstrainedLinks){
+        //if(bodyData.hasConstrainedLinks){ // WHY WAS THIS HERE?
             bodyData.body->clearExternalForces();
-        }
+        //}
     }
 }
 
@@ -657,6 +659,12 @@ void PMCFSImpl::solve()
     globalNumFrictionVectors = 0;
     areThereImpacts = false;
     constrainedLinkPairs.clear();
+ //   for(size_t i=0; i < bodiesData.size(); ++i){
+ //       const int n = bodiesData[i].body->numLinks();
+ //       for(int j=0; j < n; ++j){
+ //           bodiesData[i].linksData[j].penaltySpringCount = 0;
+ //       }
+ //   }
 
     setConstraintPoints();
 
@@ -781,9 +789,11 @@ void PMCFSImpl::extractConstraintPoints(const CollisionPair& collisionPair)
         linkPair.epsilon = defaultCoefficientOfRestitution;
         pLinkPair = &linkPair;
     }
-    pLinkPair->bodyData[0]->hasConstrainedLinks = true;
-    pLinkPair->bodyData[1]->hasConstrainedLinks = true;
-    
+    if(!pLinkPair->isPenaltyBased)
+    {
+	      pLinkPair->bodyData[0]->hasConstrainedLinks = true;
+	      pLinkPair->bodyData[1]->hasConstrainedLinks = true;
+		}
     const vector<Collision>& collisions = collisionPair.collisions;
     for(size_t i=0; i < collisions.size(); ++i){
         setContactConstraintPoint(*pLinkPair, collisions[i]);
@@ -2307,7 +2317,6 @@ void PMCFSImpl::addPenaltyForceToLink(LinkPair* linkPair, int ipair)
     int numConstraintPoints = constraintPoints.size();
     DyLink* link = linkPair->link[ipair];
     double T  = world.timeStep();
-    
     for(int i=0; i < numConstraintPoints; ++i) 
     {
         ConstraintPoint& constraint = constraintPoints[i];

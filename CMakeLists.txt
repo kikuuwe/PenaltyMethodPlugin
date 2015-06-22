@@ -28,8 +28,6 @@ target_link_libraries(${target} CnoidBodyPlugin)
 apply_common_setting_for_plugin(${target} "${headers}")
 
 
-#target_link_libraries(${target} SiconosNumerics)
-
 
 if(ENABLE_PYTHON)
 #  add_subdirectory(python)
