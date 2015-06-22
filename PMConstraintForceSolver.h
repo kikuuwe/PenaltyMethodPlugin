@@ -46,11 +46,11 @@ typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
 class CNOID_EXPORT PMConstraintForceSolver
 {
     PMCFSImpl* impl;
-		
+
 public:
     PMConstraintForceSolver(WorldBase& world);
     ~PMConstraintForceSolver();
-		
+
     void setCollisionDetector(CollisionDetectorPtr detector);
     CollisionDetectorPtr collisionDetector();
 
@@ -80,10 +80,10 @@ public:
     void set2Dmode(bool on);
     void enableConstraintForceOutput(bool on);
 
-    double penaltyKp();
-    double penaltyKv();
-    void setPenaltyKp(double aKp);
-    void setPenaltyKv(double aKv);
+    double penaltyKpCoef();
+    double penaltyKvCoef();
+    void setPenaltyKpCoef(double aKpCoef);
+    void setPenaltyKvCoef(double aKvCoef);
 
     void initialize(void);
     void solve();

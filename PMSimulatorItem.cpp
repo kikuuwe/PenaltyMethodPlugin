@@ -31,7 +31,6 @@
 
 #include "PMSimulatorItem.h"
 #include "PMConstraintForceSolver.h"
-
 #include <cnoid/ForwardDynamicsCBM>
 #include <cnoid/DyWorld>
 
@@ -159,9 +158,6 @@ public:
     bool is2Dmode;
     bool isKinematicWalkingEnabled;
 
-    double penaltyKp;
-    double penaltyKv;
-
     typedef std::map<Body*, int> BodyIndexMap;
     BodyIndexMap bodyIndexMap;
 
@@ -175,6 +171,10 @@ public:
 
     // for debug
     ofstream os;
+
+    double penaltyKpCoef;
+    double penaltyKvCoef;
+
 };
 
 }
@@ -223,8 +223,8 @@ PMSimulatorItemImpl::PMSimulatorItemImpl(PMSimulatorItem* self)
     isKinematicWalkingEnabled = false;
     is2Dmode = false;
     
-    penaltyKp = cfs.penaltyKp();
-    penaltyKv = cfs.penaltyKv();
+    penaltyKpCoef = cfs.penaltyKpCoef();
+    penaltyKvCoef = cfs.penaltyKvCoef();
     
 }
 
@@ -254,10 +254,9 @@ PMSimulatorItemImpl::PMSimulatorItemImpl(PMSimulatorItem* self, const PMSimulato
     epsilon = org.epsilon;
     isKinematicWalkingEnabled = org.isKinematicWalkingEnabled;
     is2Dmode = org.is2Dmode;
-    
-    penaltyKp = org.penaltyKp;
-    penaltyKv = org.penaltyKv;
-    
+
+    penaltyKpCoef = org.penaltyKpCoef;
+    penaltyKvCoef = org.penaltyKvCoef;
 }
 
 
@@ -415,8 +414,8 @@ bool PMSimulatorItemImpl::initializeSimulation(const std::vector<SimulationBody*
     if(is2Dmode){
         cfs.set2Dmode(true);
     }
-    cfs.setPenaltyKp(penaltyKp );
-    cfs.setPenaltyKv(penaltyKv );
+    cfs.setPenaltyKpCoef(penaltyKpCoef );
+    cfs.setPenaltyKvCoef(penaltyKvCoef );
 
     world.initialize();
 
@@ -524,8 +523,8 @@ void PMSimulatorItemImpl::doPutProperties(PutPropertyFunction& putProperty)
     putProperty.decimals(3).min(0.0);
     putProperty(_("Static friction"), staticFriction, changeProperty(staticFriction));
     putProperty(_("Slip friction"), slipFriction, changeProperty(slipFriction));
-    putProperty(_("penaltyKp"), penaltyKp, changeProperty(penaltyKp));
-    putProperty(_("penaltyKv"), penaltyKv, changeProperty(penaltyKv));
+    putProperty(_("penaltyKpCoef"), penaltyKpCoef, changeProperty(penaltyKpCoef));
+    putProperty(_("penaltyKvCoef"), penaltyKvCoef, changeProperty(penaltyKvCoef));
     putProperty(_("Contact culling distance"), contactCullingDistance,(boost::bind(&FloatingNumberString::setNonNegativeValue, boost::ref(contactCullingDistance), _1)));
     putProperty(_("Contact culling depth"), contactCullingDepth,
                 (boost::bind(&FloatingNumberString::setNonNegativeValue, boost::ref(contactCullingDepth), _1)));
@@ -539,8 +538,6 @@ void PMSimulatorItemImpl::doPutProperties(PutPropertyFunction& putProperty)
     putProperty(_("Kinematic walking"), isKinematicWalkingEnabled,
                 changeProperty(isKinematicWalkingEnabled));
     putProperty(_("2D mode"), is2Dmode, changeProperty(is2Dmode));
-    
-
 }
 
 
@@ -566,8 +563,8 @@ bool PMSimulatorItemImpl::store(Archive& archive)
     archive.write("contactCorrectionVelocityRatio", contactCorrectionVelocityRatio);
     archive.write("kinematicWalking", isKinematicWalkingEnabled);
     archive.write("2Dmode", is2Dmode);
-    archive.write("penaltyKp", penaltyKp);
-    archive.write("penaltyKv", penaltyKv);
+    archive.write("penaltyKpCoef", penaltyKpCoef);
+    archive.write("penaltyKvCoef", penaltyKvCoef);
     return true;
 }
 
@@ -599,7 +596,7 @@ bool PMSimulatorItemImpl::restore(const Archive& archive)
     contactCorrectionVelocityRatio = archive.get("contactCorrectionVelocityRatio", contactCorrectionVelocityRatio.string());
     archive.read("kinematicWalking", isKinematicWalkingEnabled);
     archive.read("2Dmode", is2Dmode);
-    archive.read("penaltyKp", penaltyKp);
-    archive.read("penaltyKv", penaltyKv);
+    archive.read("penaltyKpCoef", penaltyKpCoef);
+    archive.read("penaltyKvCoef", penaltyKvCoef);
     return true;
 }

@@ -30,8 +30,8 @@
 
 
 
-#ifndef CNOID_PMPLUGIN_PENMET_SIMULATOR_ITEM_H_INCLUDED
-#define CNOID_PMPLUGIN_PENMET_SIMULATOR_ITEM_H_INCLUDED
+#ifndef CNOID_PMPLUGIN_PM_SIMULATOR_ITEM_H_INCLUDED
+#define CNOID_PMPLUGIN_PM_SIMULATOR_ITEM_H_INCLUDED
 
 #include <cnoid/SimulatorItem>
 #include <cnoid/EigenTypes>
@@ -66,7 +66,6 @@ public:
     void setEpsilon(double epsilon);
     void set2Dmode(bool on);
     void setKinematicWalkingEnabled(bool on); 
-
 
 protected:
     virtual SimulationBodyPtr createSimulationBody(BodyPtr orgBody);
