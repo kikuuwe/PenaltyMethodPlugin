@@ -174,7 +174,7 @@ public:
 
     double penaltyKpCoef;
     double penaltyKvCoef;
-
+    double penaltySizeRatio;
 };
 
 }
@@ -225,7 +225,7 @@ PMSimulatorItemImpl::PMSimulatorItemImpl(PMSimulatorItem* self)
     
     penaltyKpCoef = cfs.penaltyKpCoef();
     penaltyKvCoef = cfs.penaltyKvCoef();
-    
+    penaltySizeRatio = cfs.penaltySizeRatio();
 }
 
 
@@ -257,6 +257,7 @@ PMSimulatorItemImpl::PMSimulatorItemImpl(PMSimulatorItem* self, const PMSimulato
 
     penaltyKpCoef = org.penaltyKpCoef;
     penaltyKvCoef = org.penaltyKvCoef;
+    penaltySizeRatio = org.penaltySizeRatio;
 }
 
 
@@ -416,6 +417,7 @@ bool PMSimulatorItemImpl::initializeSimulation(const std::vector<SimulationBody*
     }
     cfs.setPenaltyKpCoef(penaltyKpCoef );
     cfs.setPenaltyKvCoef(penaltyKvCoef );
+    cfs.setPenaltySizeRatio(penaltySizeRatio );
 
     world.initialize();
 
@@ -525,6 +527,7 @@ void PMSimulatorItemImpl::doPutProperties(PutPropertyFunction& putProperty)
     putProperty(_("Slip friction"), slipFriction, changeProperty(slipFriction));
     putProperty(_("penaltyKpCoef"), penaltyKpCoef, changeProperty(penaltyKpCoef));
     putProperty(_("penaltyKvCoef"), penaltyKvCoef, changeProperty(penaltyKvCoef));
+    putProperty(_("penaltySizeRatio"), penaltySizeRatio, changeProperty(penaltySizeRatio));
     putProperty(_("Contact culling distance"), contactCullingDistance,(boost::bind(&FloatingNumberString::setNonNegativeValue, boost::ref(contactCullingDistance), _1)));
     putProperty(_("Contact culling depth"), contactCullingDepth,
                 (boost::bind(&FloatingNumberString::setNonNegativeValue, boost::ref(contactCullingDepth), _1)));
@@ -565,6 +568,7 @@ bool PMSimulatorItemImpl::store(Archive& archive)
     archive.write("2Dmode", is2Dmode);
     archive.write("penaltyKpCoef", penaltyKpCoef);
     archive.write("penaltyKvCoef", penaltyKvCoef);
+    archive.write("penaltySizeRatio", penaltySizeRatio);
     return true;
 }
 
@@ -598,5 +602,6 @@ bool PMSimulatorItemImpl::restore(const Archive& archive)
     archive.read("2Dmode", is2Dmode);
     archive.read("penaltyKpCoef", penaltyKpCoef);
     archive.read("penaltyKvCoef", penaltyKvCoef);
+    archive.read("penaltySizeRatio", penaltySizeRatio);
     return true;
 }

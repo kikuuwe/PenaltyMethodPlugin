@@ -82,8 +82,10 @@ public:
 
     double penaltyKpCoef();
     double penaltyKvCoef();
+    double penaltySizeRatio();
     void setPenaltyKpCoef(double aKpCoef);
     void setPenaltyKvCoef(double aKvCoef);
+    void setPenaltySizeRatio(double aSizeRatio);
 
     void initialize(void);
     void solve();

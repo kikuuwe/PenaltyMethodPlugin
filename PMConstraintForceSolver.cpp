@@ -385,6 +385,7 @@ public:
 
     double penaltyKpCoef;
     double penaltyKvCoef;
+    double penaltySizeRatio;
 
     static Vector3 kkwsat(double a, const Vector3& x)
     {
@@ -394,16 +395,11 @@ public:
     }
     static double kkwmin(double a, double b){if(a>b) return b; return a;}
     static double kkwmax(double a, double b){if(a<b) return b; return a;}
+    static double kkwmin(Vector3 a){return kkwmin(kkwmin(a(0),a(1)),a(2));}
     void addPenaltyForceToLinks();
     void addPenaltyForceToLink(LinkPair* linkPair, int ipair);
 
 };
-/*
-  #ifdef _MSC_VER
-  const double PMCFSImpl::PI   = 3.14159265358979323846;
-  const double PMCFSImpl::PI_2 = 1.57079632679489661923;
-  #endif
-*/
 };
 
 
@@ -426,16 +422,15 @@ PMCFSImpl::PMCFSImpl(WorldBase& world) :
 
     isConstraintForceOutputMode = false;
     is2Dmode = false;
-    
-    bodyFor2dConstraint = 0;
+
     penaltyKpCoef = 1.;
     penaltyKvCoef = 1.;
+    penaltySizeRatio = 0.05;
 }
 
 
 PMCFSImpl::~PMCFSImpl()
 {
-    if(!bodyFor2dConstraint) delete bodyFor2dConstraint;
     if(CFS_DEBUG){
         os.close();
     }
@@ -457,6 +452,7 @@ void PMCFSImpl::initBody(const DyBodyPtr& body, BodyData& bodyData)
         DyLink* link = body->link(i);
         linksData[link->index()].link = link;
         linksData[link->index()].parentIndex = link->parent() ? link->parent()->index() : -1;
+        linksData[link->index()].penaltySpringCount = 0;
     }
 }
 
@@ -602,6 +598,7 @@ void PMCFSImpl::initialize(void)
                 LinkData& linkData = linksData[j];
                 linkData.dw.setZero();
                 linkData.dvo.setZero();
+                linkData.penaltySpringCount = 0;
             }
         }
 
@@ -632,6 +629,11 @@ inline void PMCFSImpl::clearExternalForces()
         //if(bodyData.hasConstrainedLinks){ // WHY WAS THIS HERE?
             bodyData.body->clearExternalForces();
         //}
+        const int n = bodyData.body->numLinks();
+        for(int j=0; j < n; ++j){
+            bodiesData[i].linksData[j].penaltySpringCount = 0;
+            bodiesData[i].body->link(j)->constraintForces().clear();
+        }
     }
 }
 
@@ -659,12 +661,6 @@ void PMCFSImpl::solve()
     globalNumFrictionVectors = 0;
     areThereImpacts = false;
     constrainedLinkPairs.clear();
- //   for(size_t i=0; i < bodiesData.size(); ++i){
- //       const int n = bodiesData[i].body->numLinks();
- //       for(int j=0; j < n; ++j){
- //           bodiesData[i].linksData[j].penaltySpringCount = 0;
- //       }
- //   }
 
     setConstraintPoints();
 
@@ -775,10 +771,23 @@ void PMCFSImpl::extractConstraintPoints(const CollisionPair& collisionPair)
             const int linkIndex = id - bodyData.geometryId;
             linkPair.link[i] = bodyData.body->link(linkIndex);
             linkPair.linkData[i] = &bodyData.linksData[linkIndex];
-            if(linkPair.isPenaltyBased)
-            {
-               linkPair.linkData[i]->penaltySpringCount ++ ;
-            }
+        }
+        if(linkPair.isPenaltyBased)
+        {
+          Vector3 sz0 = linkPair.linkData[0]->link->shape()->boundingBox().max()
+                       -linkPair.linkData[0]->link->shape()->boundingBox().min() ;
+          Vector3 sz1 = linkPair.linkData[1]->link->shape()->boundingBox().max()
+                       -linkPair.linkData[1]->link->shape()->boundingBox().min() ;
+          double minsize = kkwmin(kkwmin(sz0),kkwmin(sz1));
+          const vector<Collision>& collisions = collisionPair.collisions;
+          for(size_t j=0; j < collisions.size(); ++j){
+            if(penaltySizeRatio * minsize < collisions[j].depth ) linkPair.isPenaltyBased = false;
+          }
+        }
+        if(linkPair.isPenaltyBased)
+        {
+           linkPair.linkData[0]->penaltySpringCount ++ ;
+           linkPair.linkData[1]->penaltySpringCount ++ ;
         }
         linkPair.isSameBodyPair = (linkPair.bodyIndex[0] == linkPair.bodyIndex[1]);
         linkPair.isNonContactConstraint = false;
@@ -791,9 +800,9 @@ void PMCFSImpl::extractConstraintPoints(const CollisionPair& collisionPair)
     }
     if(!pLinkPair->isPenaltyBased)
     {
-	      pLinkPair->bodyData[0]->hasConstrainedLinks = true;
-	      pLinkPair->bodyData[1]->hasConstrainedLinks = true;
-		}
+        pLinkPair->bodyData[0]->hasConstrainedLinks = true;
+        pLinkPair->bodyData[1]->hasConstrainedLinks = true;
+    }
     const vector<Collision>& collisions = collisionPair.collisions;
     for(size_t i=0; i < collisions.size(); ++i){
         setContactConstraintPoint(*pLinkPair, collisions[i]);
@@ -865,9 +874,9 @@ bool PMCFSImpl::setContactConstraintPoint(LinkPair& linkPair, const Collision& c
     contact.relVelocityOn0 = v[1] - v[0];
     if(linkPair.isPenaltyBased)
     {
-			contact.globalFrictionIndex = -1;
-			 return true;
-		}
+      contact.globalFrictionIndex = -1;
+       return true;
+    }
 
     contact.normalProjectionOfRelVelocityOn0 = contact.normalTowardInside[1].dot(contact.relVelocityOn0);
 
@@ -2235,17 +2244,25 @@ void PMConstraintForceSolver::setContactDepthCorrection(double depth, double vel
 }
 
 
+void PMConstraintForceSolver::setPenaltySizeRatio(double aSizeRatio)
+{
+    impl->penaltySizeRatio = aSizeRatio;
+}
+double PMConstraintForceSolver::penaltySizeRatio()
+{
+    return impl->penaltySizeRatio;
+}
 void PMConstraintForceSolver::setPenaltyKpCoef(double aKpCoef)
 {
     impl->penaltyKpCoef = aKpCoef;
 }
-void PMConstraintForceSolver::setPenaltyKvCoef(double aKvCoef)
-{
-    impl->penaltyKvCoef = aKvCoef;
-}
 double PMConstraintForceSolver::penaltyKpCoef()
 {
     return impl->penaltyKpCoef;
+}
+void PMConstraintForceSolver::setPenaltyKvCoef(double aKvCoef)
+{
+    impl->penaltyKvCoef = aKvCoef;
 }
 double PMConstraintForceSolver::penaltyKvCoef()
 {
